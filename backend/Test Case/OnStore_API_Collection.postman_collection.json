@@ -1,0 +1,599 @@
+{
+  "info": {
+    "name": "OnStore API",
+    "description": "Complete API collection for the OnStore e-commerce platform.\n\n## Setup\n1. Import this collection into Postman\n2. Import the `OnStore_Environment.postman_environment.json` file\n3. Select the **OnStore Local** environment\n4. Run **Auth → Register (Buyer)** or **Auth → Login** — the token is saved automatically\n\n## Authentication\nAll protected routes automatically use the `{{token}}` variable set by the login/register requests.\n\n## Base URL\n`{{baseUrl}}` → defaults to `http://localhost:5000/api`",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_postman_id": "onstore-api-collection-v1"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:5000/api", "type": "string" },
+    { "key": "token",   "value": "", "type": "string" },
+    { "key": "productSlug", "value": "", "type": "string" },
+    { "key": "productId",   "value": "", "type": "string" },
+    { "key": "orderId",     "value": "", "type": "string" },
+    { "key": "orderItemId", "value": "", "type": "string" },
+    { "key": "cartItemId",  "value": "", "type": "string" },
+    { "key": "categoryId",  "value": "", "type": "string" },
+    { "key": "sellerId",    "value": "", "type": "string" }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+  },
+  "item": [
+
+    {
+      "name": "🔐 Auth",
+      "description": "Registration, login, profile and password management.",
+      "item": [
+        {
+          "name": "Register – Buyer",
+          "event": [{
+            "listen": "test",
+            "script": {
+              "exec": [
+                "const res = pm.response.json();",
+                "if (res.token) {",
+                "  pm.collectionVariables.set('token', res.token);",
+                "  pm.test('Token saved', () => pm.expect(res.token).to.be.a('string'));",
+                "}",
+                "pm.test('Status 201', () => pm.response.to.have.status(201));"
+              ],
+              "type": "text/javascript"
+            }
+          }],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/auth/register", "host": ["{{baseUrl}}"], "path": ["auth","register"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"buyer_demo\",\n  \"email\": \"buyer@demo.com\",\n  \"password\": \"password123\",\n  \"role\": \"buyer\",\n  \"full_name\": \"Demo Buyer\",\n  \"phone\": \"+250700000001\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Register – Seller",
+          "event": [{
+            "listen": "test",
+            "script": {
+              "exec": [
+                "const res = pm.response.json();",
+                "if (res.token) pm.collectionVariables.set('token', res.token);",
+                "pm.test('Status 201', () => pm.response.to.have.status(201));"
+              ],
+              "type": "text/javascript"
+            }
+          }],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/auth/register", "host": ["{{baseUrl}}"], "path": ["auth","register"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"seller_demo\",\n  \"email\": \"seller@demo.com\",\n  \"password\": \"password123\",\n  \"role\": \"seller\",\n  \"store_name\": \"Demo Store\",\n  \"phone\": \"+250700000002\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Login",
+          "event": [{
+            "listen": "test",
+            "script": {
+              "exec": [
+                "const res = pm.response.json();",
+                "if (res.token) {",
+                "  pm.collectionVariables.set('token', res.token);",
+                "  pm.test('Token saved', () => pm.expect(res.token).to.be.a('string'));",
+                "}",
+                "if (res.profile?.id) pm.collectionVariables.set('sellerId', res.profile.id);",
+                "pm.test('Status 200', () => pm.response.to.have.status(200));"
+              ],
+              "type": "text/javascript"
+            }
+          }],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/auth/login", "host": ["{{baseUrl}}"], "path": ["auth","login"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"buyer@demo.com\",\n  \"password\": \"password123\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Get Current User (me)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/auth/me", "host": ["{{baseUrl}}"], "path": ["auth","me"] },
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{token}}" }] }
+          }
+        },
+        {
+          "name": "Change Password",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/auth/change-password", "host": ["{{baseUrl}}"], "path": ["auth","change-password"] },
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{token}}" }] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"current_password\": \"password123\",\n  \"new_password\": \"newpassword456\"\n}"
+            }
+          }
+        }
+      ]
+    },
+
+    {
+      "name": "📦 Products",
+      "description": "Browse, search, create, update and delete products.",
+      "item": [
+        {
+          "name": "List Products",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/products?page=1&limit=20&sort=created_at&order=DESC",
+              "host": ["{{baseUrl}}"],
+              "path": ["products"],
+              "query": [
+                { "key": "page",      "value": "1" },
+                { "key": "limit",     "value": "20" },
+                { "key": "sort",      "value": "created_at" },
+                { "key": "order",     "value": "DESC" },
+                { "key": "search",    "value": "",    "disabled": true },
+                { "key": "category",  "value": "",    "disabled": true },
+                { "key": "seller",    "value": "",    "disabled": true },
+                { "key": "min_price", "value": "",    "disabled": true },
+                { "key": "max_price", "value": "",    "disabled": true }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Search Products",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/products?search=phone&min_price=10&max_price=500&sort=price&order=ASC",
+              "host": ["{{baseUrl}}"],
+              "path": ["products"],
+              "query": [
+                { "key": "search",    "value": "phone" },
+                { "key": "min_price", "value": "10" },
+                { "key": "max_price", "value": "500" },
+                { "key": "sort",      "value": "price" },
+                { "key": "order",     "value": "ASC" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Product by Slug",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/products/{{productSlug}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["products", "{{productSlug}}"]
+            }
+          }
+        },
+        {
+          "name": "Create Product (Seller)",
+          "event": [{
+            "listen": "test",
+            "script": {
+              "exec": [
+                "const res = pm.response.json();",
+                "if (res.data?.id) pm.collectionVariables.set('productId', res.data.id);",
+                "if (res.data?.slug) pm.collectionVariables.set('productSlug', res.data.slug);",
+                "pm.test('Status 201', () => pm.response.to.have.status(201));"
+              ],
+              "type": "text/javascript"
+            }
+          }],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{token}}" }] },
+            "url": { "raw": "{{baseUrl}}/products", "host": ["{{baseUrl}}"], "path": ["products"] },
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                { "key": "name",        "value": "Wireless Bluetooth Headphones", "type": "text" },
+                { "key": "description", "value": "High quality over-ear headphones with 30hr battery life.", "type": "text" },
+                { "key": "price",       "value": "49.99", "type": "text" },
+                { "key": "stock",       "value": "100",   "type": "text" },
+                { "key": "category_id", "value": "1",     "type": "text" },
+                { "key": "images",      "type": "file",   "src": [], "disabled": true }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Update Product (Seller)",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{token}}" }] },
+            "url": { "raw": "{{baseUrl}}/products/{{productId}}", "host": ["{{baseUrl}}"], "path": ["products", "{{productId}}"] },
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                { "key": "price", "value": "44.99", "type": "text" },
+                { "key": "stock", "value": "85",    "type": "text" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Delete Product (Seller)",
+          "request": {
+            "method": "DELETE",
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{token}}" }] },
+            "url": { "raw": "{{baseUrl}}/products/{{productId}}", "host": ["{{baseUrl}}"], "path": ["products", "{{productId}}"] }
+          }
+        }
+      ]
+    },
+
+    {
+      "name": "🛒 Cart",
+      "description": "Manage the buyer's shopping cart.",
+      "item": [
+        {
+          "name": "Get Cart",
+          "request": {
+            "method": "GET",
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{token}}" }] },
+            "url": { "raw": "{{baseUrl}}/cart", "host": ["{{baseUrl}}"], "path": ["cart"] }
+          }
+        },
+        {
+          "name": "Add to Cart",
+          "event": [{
+            "listen": "test",
+            "script": {
+              "exec": [
+                "pm.test('Status 201', () => pm.response.to.have.status(201));"
+              ],
+              "type": "text/javascript"
+            }
+          }],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{token}}" }] },
+            "url": { "raw": "{{baseUrl}}/cart", "host": ["{{baseUrl}}"], "path": ["cart"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"product_id\": {{productId}},\n  \"quantity\": 2\n}"
+            }
+          }
+        },
+        {
+          "name": "Update Cart Item Quantity",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{token}}" }] },
+            "url": { "raw": "{{baseUrl}}/cart/{{cartItemId}}", "host": ["{{baseUrl}}"], "path": ["cart","{{cartItemId}}"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"quantity\": 3\n}"
+            }
+          }
+        },
+        {
+          "name": "Remove Cart Item",
+          "request": {
+            "method": "DELETE",
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{token}}" }] },
+            "url": { "raw": "{{baseUrl}}/cart/{{cartItemId}}", "host": ["{{baseUrl}}"], "path": ["cart","{{cartItemId}}"] }
+          }
+        },
+        {
+          "name": "Clear Cart",
+          "request": {
+            "method": "DELETE",
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{token}}" }] },
+            "url": { "raw": "{{baseUrl}}/cart", "host": ["{{baseUrl}}"], "path": ["cart"] }
+          }
+        }
+      ]
+    },
+
+    {
+      "name": "📋 Orders",
+      "description": "Place orders, track history, manage fulfillment.",
+      "item": [
+        {
+          "name": "Place Order (Buyer)",
+          "event": [{
+            "listen": "test",
+            "script": {
+              "exec": [
+                "const res = pm.response.json();",
+                "if (res.data?.orderId) pm.collectionVariables.set('orderId', res.data.orderId);",
+                "pm.test('Status 201', () => pm.response.to.have.status(201));"
+              ],
+              "type": "text/javascript"
+            }
+          }],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{token}}" }] },
+            "url": { "raw": "{{baseUrl}}/orders", "host": ["{{baseUrl}}"], "path": ["orders"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"address_id\": 1,\n  \"payment_method\": \"mobile_money\",\n  \"notes\": \"Please pack carefully.\"\n}"
+            }
+          }
+        },
+        {
+          "name": "My Orders (Buyer)",
+          "request": {
+            "method": "GET",
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{token}}" }] },
+            "url": {
+              "raw": "{{baseUrl}}/orders?page=1&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["orders"],
+              "query": [
+                { "key": "page",   "value": "1" },
+                { "key": "limit",  "value": "10" },
+                { "key": "status", "value": "", "disabled": true }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Order Detail (Buyer)",
+          "request": {
+            "method": "GET",
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{token}}" }] },
+            "url": { "raw": "{{baseUrl}}/orders/{{orderId}}", "host": ["{{baseUrl}}"], "path": ["orders","{{orderId}}"] }
+          }
+        },
+        {
+          "name": "Cancel Order (Buyer)",
+          "request": {
+            "method": "PATCH",
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{token}}" }] },
+            "url": { "raw": "{{baseUrl}}/orders/{{orderId}}/cancel", "host": ["{{baseUrl}}"], "path": ["orders","{{orderId}}","cancel"] }
+          }
+        },
+        {
+          "name": "Seller – My Order Items",
+          "request": {
+            "method": "GET",
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{token}}" }] },
+            "url": {
+              "raw": "{{baseUrl}}/orders/seller?page=1&limit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["orders","seller"],
+              "query": [
+                { "key": "page",   "value": "1" },
+                { "key": "limit",  "value": "20" },
+                { "key": "status", "value": "", "disabled": true }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Seller – Update Item Status",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{token}}" }] },
+            "url": {
+              "raw": "{{baseUrl}}/orders/{{orderId}}/items/{{orderItemId}}/status",
+              "host": ["{{baseUrl}}"],
+              "path": ["orders","{{orderId}}","items","{{orderItemId}}","status"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"confirmed\"\n}"
+            },
+            "description": "Allowed values: `confirmed`, `delivered`, `cancelled`"
+          }
+        }
+      ]
+    },
+
+    {
+      "name": "⭐ Reviews",
+      "description": "Submit and read product reviews (buyer must have received the item).",
+      "item": [
+        {
+          "name": "Submit Review (Buyer)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{token}}" }] },
+            "url": { "raw": "{{baseUrl}}/reviews", "host": ["{{baseUrl}}"], "path": ["reviews"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"product_id\": {{productId}},\n  \"order_id\": {{orderId}},\n  \"rating\": 5,\n  \"title\": \"Excellent quality!\",\n  \"body\": \"Battery lasts all day and sound quality is superb. Very happy with this purchase.\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Get Product Reviews",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/reviews/product/{{productId}}?page=1&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["reviews","product","{{productId}}"],
+              "query": [
+                { "key": "page",  "value": "1" },
+                { "key": "limit", "value": "10" }
+              ]
+            }
+          }
+        }
+      ]
+    },
+
+    {
+      "name": "❤️ Wishlist",
+      "description": "Save and manage favourite products.",
+      "item": [
+        {
+          "name": "Get Wishlist",
+          "request": {
+            "method": "GET",
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{token}}" }] },
+            "url": { "raw": "{{baseUrl}}/wishlist", "host": ["{{baseUrl}}"], "path": ["wishlist"] }
+          }
+        },
+        {
+          "name": "Toggle Wishlist (add / remove)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{token}}" }] },
+            "url": { "raw": "{{baseUrl}}/wishlist", "host": ["{{baseUrl}}"], "path": ["wishlist"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"product_id\": {{productId}}\n}"
+            },
+            "description": "Calling this twice toggles the product in and out of the wishlist."
+          }
+        }
+      ]
+    },
+
+    {
+      "name": "🗂️ Categories",
+      "description": "Browse product categories (tree structure with sub-categories).",
+      "item": [
+        {
+          "name": "Get All Categories (tree)",
+          "event": [{
+            "listen": "test",
+            "script": {
+              "exec": [
+                "const res = pm.response.json();",
+                "if (res.data?.[0]?.id) pm.collectionVariables.set('categoryId', res.data[0].id);",
+                "pm.test('Status 200', () => pm.response.to.have.status(200));"
+              ],
+              "type": "text/javascript"
+            }
+          }],
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/categories", "host": ["{{baseUrl}}"], "path": ["categories"] }
+          }
+        },
+        {
+          "name": "Create Category (Admin)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{token}}" }] },
+            "url": { "raw": "{{baseUrl}}/categories", "host": ["{{baseUrl}}"], "path": ["categories"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Electronics\",\n  \"parent_id\": null,\n  \"icon_url\": \"/icons/electronics.svg\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Create Sub-Category (Admin)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{token}}" }] },
+            "url": { "raw": "{{baseUrl}}/categories", "host": ["{{baseUrl}}"], "path": ["categories"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Mobile Phones\",\n  \"parent_id\": {{categoryId}},\n  \"icon_url\": \"/icons/phones.svg\"\n}"
+            }
+          }
+        }
+      ]
+    },
+
+    {
+      "name": "🔔 Notifications",
+      "description": "Fetch and manage in-app notifications.",
+      "item": [
+        {
+          "name": "Get All Notifications",
+          "request": {
+            "method": "GET",
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{token}}" }] },
+            "url": {
+              "raw": "{{baseUrl}}/notifications?page=1&limit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["notifications"],
+              "query": [
+                { "key": "page",   "value": "1" },
+                { "key": "limit",  "value": "20" },
+                { "key": "unread", "value": "true", "disabled": true }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Unread Notifications Only",
+          "request": {
+            "method": "GET",
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{token}}" }] },
+            "url": {
+              "raw": "{{baseUrl}}/notifications?unread=true",
+              "host": ["{{baseUrl}}"],
+              "path": ["notifications"],
+              "query": [{ "key": "unread", "value": "true" }]
+            }
+          }
+        },
+        {
+          "name": "Mark All as Read",
+          "request": {
+            "method": "PATCH",
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{token}}" }] },
+            "url": { "raw": "{{baseUrl}}/notifications/read-all", "host": ["{{baseUrl}}"], "path": ["notifications","read-all"] }
+          }
+        }
+      ]
+    },
+
+    {
+      "name": "📊 Analytics",
+      "description": "Seller dashboard data — revenue, top products, monthly trends.",
+      "item": [
+        {
+          "name": "Seller Dashboard Analytics",
+          "request": {
+            "method": "GET",
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{token}}" }] },
+            "url": { "raw": "{{baseUrl}}/analytics/seller", "host": ["{{baseUrl}}"], "path": ["analytics","seller"] },
+            "description": "Returns:\n- `overview`: total revenue, total orders, total items sold\n- `top_products`: top 5 products by units sold\n- `monthly_sales`: last 12 months revenue & order count\n- `low_stock_count`: products with stock ≤ 5"
+          }
+        }
+      ]
+    },
+
+    {
+      "name": "🏥 Health",
+      "description": "Server health check.",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/health", "host": ["{{baseUrl}}"], "path": ["health"] }
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,4 @@
+◇ injecting env (0) from .env // tip: ⌘ enable debugging { debug: true }
+ MySQL connected successfully
+ OnStore API running on http://localhost:5000
+ Socket.io ready

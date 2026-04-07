@@ -1,0 +1,84 @@
+.nav {
+  height: 56px; border-bottom: 1px solid var(--border);
+  background: var(--paper); position: sticky; top: 0; z-index: 200;
+}
+.inner {
+  max-width: 940px; margin: 0 auto; padding: 0 20px;
+  height: 100%; display: flex; align-items: center; gap: 0;
+}
+.logo {
+  font-family: var(--fd); font-size: 21px; letter-spacing: -0.5px;
+  display: flex; align-items: center; gap: 5px; margin-right: 28px;
+  color: var(--ink); flex-shrink: 0;
+}
+.logoDot {
+  width: 8px; height: 8px; background: var(--indigo);
+  border-radius: 50%; margin-bottom: 5px;
+}
+.links { display: flex; gap: 2px; flex: 1; }
+.link {
+  padding: 6px 11px; font-size: 13px; color: var(--gray);
+  border-radius: var(--r); transition: all var(--ease);
+  font-weight: 400; white-space: nowrap;
+}
+.link:hover { color: var(--ink); background: var(--surface); }
+.active { color: var(--ink); font-weight: 600; }
+.right { display: flex; align-items: center; gap: 6px; }
+.rolePill {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-family: var(--fm);
+  color: var(--indigo);
+  border: 1px solid var(--indigo-mid);
+  background: var(--indigo-light);
+  border-radius: 999px;
+  padding: 3px 8px;
+}
+.iconBtn {
+  width: 34px; height: 34px; border-radius: var(--r);
+  border: 1.5px solid var(--border); background: none;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--gray); transition: all var(--ease); position: relative;
+  flex-shrink: 0;
+}
+.iconBtn:hover { background: var(--surface); color: var(--ink); border-color: var(--border2); }
+.badge {
+  position: absolute; top: -5px; right: -5px;
+  background: var(--indigo); color: #fff; border-radius: 50%;
+  width: 17px; height: 17px; font-size: 9px; font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--fm);
+}
+.notifDot {
+  position: absolute; top: 5px; right: 5px;
+  width: 7px; height: 7px; background: var(--rose); border-radius: 50%;
+}
+.avatarWrap { position: relative; }
+.avatar {
+  width: 33px; height: 33px; border-radius: 50%;
+  background: var(--indigo-light); color: var(--indigo);
+  font-size: 12px; font-weight: 700; display: flex; align-items: center;
+  justify-content: center; cursor: pointer; border: 1.5px solid var(--indigo-mid);
+  transition: all var(--ease);
+}
+.avatar:hover { background: var(--indigo); color: #fff; }
+.dropdown {
+  position: absolute; top: calc(100% + 8px); right: 0;
+  background: #fff; border: 1.5px solid var(--border); border-radius: var(--rl);
+  min-width: 180px; box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+  overflow: hidden; animation: dropIn 0.15s ease;
+}
+@keyframes dropIn { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }
+.dropHeader { padding: 12px 14px 10px; }
+.dropName { font-size: 13px; font-weight: 600; }
+.dropRole { font-size: 11px; color: var(--indigo); font-family: var(--fm); font-weight: 600; text-transform: capitalize; margin-top: 1px; }
+.dropDivider { height: 1px; background: var(--border); margin: 4px 0; }
+.dropItem {
+  display: block; padding: 9px 14px; font-size: 13px; color: var(--gray);
+  transition: all var(--ease); width: 100%; text-align: left;
+  background: none; border: none; cursor: pointer;
+}
+.dropItem:hover { background: var(--surface); color: var(--ink); }
+.dropLogout { color: var(--rose); }
+.dropLogout:hover { background: var(--rose-light); color: var(--rose); }

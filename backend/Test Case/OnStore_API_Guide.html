@@ -1,0 +1,703 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>OnStore API Reference</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Syne:wght@400;600;700;800&display=swap');
+
+  :root {
+    --bg:       #0d0f14;
+    --surface:  #13161e;
+    --surface2: #1a1e28;
+    --border:   #252933;
+    --text:     #e2e4ea;
+    --muted:    #6b7080;
+    --accent:   #6c7bff;
+    --accent2:  #a78bfa;
+    --GET:      #22c55e;
+    --POST:     #3b82f6;
+    --PUT:      #f59e0b;
+    --PATCH:    #8b5cf6;
+    --DELETE:   #ef4444;
+    --code-bg:  #0a0c12;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: 'Syne', sans-serif; line-height: 1.6; }
+  a { color: var(--accent); text-decoration: none; }
+
+  /* Layout */
+  .layout { display: flex; min-height: 100vh; }
+  .sidebar { width: 260px; background: var(--surface); border-right: 1px solid var(--border); position: sticky; top: 0; height: 100vh; overflow-y: auto; flex-shrink: 0; }
+  .main { flex: 1; padding: 48px 56px; max-width: 960px; }
+
+  /* Sidebar */
+  .sidebar-header { padding: 24px 20px 16px; border-bottom: 1px solid var(--border); }
+  .sidebar-logo { font-size: 18px; font-weight: 800; color: var(--text); letter-spacing: -0.5px; }
+  .sidebar-logo span { color: var(--accent); }
+  .sidebar-sub { font-size: 11px; color: var(--muted); margin-top: 2px; letter-spacing: 0.5px; text-transform: uppercase; }
+  .sidebar-nav { padding: 12px 0; }
+  .nav-group { margin-bottom: 4px; }
+  .nav-group-label { padding: 8px 20px 4px; font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); font-weight: 600; }
+  .nav-item { display: flex; align-items: center; gap: 8px; padding: 7px 20px; font-size: 13px; color: var(--muted); cursor: pointer; transition: all 0.15s; border-left: 2px solid transparent; }
+  .nav-item:hover { color: var(--text); background: var(--surface2); }
+  .nav-item.active { color: var(--accent); border-left-color: var(--accent); background: rgba(108,123,255,0.08); }
+  .nav-badge { font-size: 9px; background: var(--surface2); border: 1px solid var(--border); border-radius: 4px; padding: 1px 5px; color: var(--muted); margin-left: auto; }
+
+  /* Header */
+  .page-header { margin-bottom: 48px; }
+  .page-title { font-size: 36px; font-weight: 800; letter-spacing: -1px; background: linear-gradient(135deg, var(--text) 0%, var(--accent2) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+  .page-desc { color: var(--muted); font-size: 15px; margin-top: 8px; }
+  .base-url-bar { display: flex; align-items: center; gap: 12px; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 12px 16px; margin-top: 20px; }
+  .base-url-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; white-space: nowrap; }
+  .base-url-value { font-family: 'JetBrains Mono', monospace; font-size: 13px; color: var(--accent); }
+
+  /* Auth note */
+  .auth-note { display: flex; align-items: flex-start; gap: 12px; background: rgba(108,123,255,0.08); border: 1px solid rgba(108,123,255,0.25); border-radius: 10px; padding: 14px 16px; margin-bottom: 40px; font-size: 13px; color: var(--text); }
+  .auth-note code { font-family: 'JetBrains Mono', monospace; background: rgba(108,123,255,0.15); padding: 2px 6px; border-radius: 4px; font-size: 12px; color: var(--accent2); }
+
+  /* Section */
+  .section { margin-bottom: 56px; scroll-margin-top: 24px; }
+  .section-title { font-size: 22px; font-weight: 700; letter-spacing: -0.5px; margin-bottom: 4px; display: flex; align-items: center; gap: 10px; }
+  .section-desc { color: var(--muted); font-size: 14px; margin-bottom: 20px; }
+
+  /* Endpoint card */
+  .endpoint { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; margin-bottom: 12px; overflow: hidden; transition: border-color 0.2s; }
+  .endpoint:hover { border-color: #353944; }
+  .ep-header { display: flex; align-items: center; gap: 12px; padding: 14px 18px; cursor: pointer; user-select: none; }
+  .ep-header:hover { background: var(--surface2); }
+  .method { font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 600; padding: 3px 8px; border-radius: 5px; min-width: 58px; text-align: center; letter-spacing: 0.5px; }
+  .method.GET    { background: rgba(34,197,94,0.12);  color: var(--GET);    border: 1px solid rgba(34,197,94,0.25); }
+  .method.POST   { background: rgba(59,130,246,0.12); color: var(--POST);   border: 1px solid rgba(59,130,246,0.25); }
+  .method.PUT    { background: rgba(245,158,11,0.12); color: var(--PUT);    border: 1px solid rgba(245,158,11,0.25); }
+  .method.PATCH  { background: rgba(139,92,246,0.12); color: var(--PATCH);  border: 1px solid rgba(139,92,246,0.25); }
+  .method.DELETE { background: rgba(239,68,68,0.12);  color: var(--DELETE); border: 1px solid rgba(239,68,68,0.25); }
+  .ep-path { font-family: 'JetBrains Mono', monospace; font-size: 13px; color: var(--text); flex: 1; }
+  .ep-path .param { color: var(--accent2); }
+  .ep-desc { font-size: 12px; color: var(--muted); margin-left: auto; white-space: nowrap; }
+  .ep-access { display: flex; gap: 6px; }
+  .badge { font-size: 10px; padding: 2px 7px; border-radius: 4px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.4px; }
+  .badge.public  { background: rgba(34,197,94,0.1);  color: var(--GET);    border: 1px solid rgba(34,197,94,0.2); }
+  .badge.auth    { background: rgba(108,123,255,0.1); color: var(--accent); border: 1px solid rgba(108,123,255,0.2); }
+  .badge.buyer   { background: rgba(59,130,246,0.1);  color: var(--POST);   border: 1px solid rgba(59,130,246,0.2); }
+  .badge.seller  { background: rgba(245,158,11,0.1);  color: var(--PUT);    border: 1px solid rgba(245,158,11,0.2); }
+  .badge.admin   { background: rgba(239,68,68,0.1);   color: var(--DELETE); border: 1px solid rgba(239,68,68,0.2); }
+  .ep-chevron { color: var(--muted); font-size: 12px; transition: transform 0.2s; }
+  .ep-chevron.open { transform: rotate(180deg); }
+
+  /* Expanded body */
+  .ep-body { border-top: 1px solid var(--border); padding: 0; max-height: 0; overflow: hidden; transition: max-height 0.3s ease; }
+  .ep-body.open { max-height: 900px; }
+  .ep-body-inner { padding: 18px 18px 20px; display: flex; flex-direction: column; gap: 16px; }
+
+  .detail-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.8px; color: var(--muted); margin-bottom: 6px; font-weight: 600; }
+  .params-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .params-table th { text-align: left; padding: 6px 10px; color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid var(--border); }
+  .params-table td { padding: 8px 10px; border-bottom: 1px solid rgba(37,41,51,0.5); vertical-align: top; }
+  .params-table tr:last-child td { border-bottom: none; }
+  .param-name { font-family: 'JetBrains Mono', monospace; color: var(--accent2); font-size: 12px; }
+  .param-type { font-family: 'JetBrains Mono', monospace; color: var(--muted); font-size: 11px; }
+  .param-req  { font-size: 10px; padding: 1px 5px; border-radius: 3px; }
+  .param-req.required { background: rgba(239,68,68,0.1); color: var(--DELETE); border: 1px solid rgba(239,68,68,0.2); }
+  .param-req.optional { background: rgba(107,112,128,0.1); color: var(--muted); border: 1px solid var(--border); }
+
+  pre { background: var(--code-bg); border: 1px solid var(--border); border-radius: 8px; padding: 14px 16px; overflow-x: auto; font-family: 'JetBrains Mono', monospace; font-size: 12px; line-height: 1.7; color: #a8b4cc; }
+  .kw  { color: #6c7bff; }
+  .str { color: #86efac; }
+  .num { color: #fbbf24; }
+  .key { color: #a78bfa; }
+
+  /* Query params */
+  .query-pill { display: inline-block; font-family: 'JetBrains Mono', monospace; font-size: 11px; background: var(--surface2); border: 1px solid var(--border); padding: 2px 8px; border-radius: 4px; color: var(--muted); margin: 2px; }
+  .query-pill span { color: var(--accent2); }
+
+  /* Status flow */
+  .status-flow { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .status-pill { font-size: 11px; font-family: 'JetBrains Mono', monospace; background: var(--surface2); border: 1px solid var(--border); padding: 3px 10px; border-radius: 20px; color: var(--text); }
+  .status-arrow { color: var(--muted); font-size: 12px; }
+
+  /* Socket section */
+  .socket-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .socket-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 16px; }
+  .socket-card-title { font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--muted); margin-bottom: 12px; display: flex; align-items: center; gap: 6px; }
+  .socket-event { display: flex; align-items: flex-start; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--border); }
+  .socket-event:last-child { border-bottom: none; padding-bottom: 0; }
+  .socket-event-name { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--accent); min-width: 130px; }
+  .socket-event-desc { font-size: 12px; color: var(--muted); }
+
+  /* Divider */
+  hr { border: none; border-top: 1px solid var(--border); margin: 40px 0; }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+  @media (max-width: 768px) {
+    .sidebar { display: none; }
+    .main { padding: 24px 20px; }
+    .socket-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+<div class="layout">
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-logo">On<span>Store</span></div>
+      <div class="sidebar-sub">API Reference v1.0</div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-group">
+        <div class="nav-group-label">Getting Started</div>
+        <div class="nav-item active" onclick="scrollTo('intro')">Introduction</div>
+        <div class="nav-item" onclick="scrollTo('auth-section')">Authentication</div>
+      </div>
+      <div class="nav-group">
+        <div class="nav-group-label">Endpoints</div>
+        <div class="nav-item" onclick="scrollTo('s-auth')">🔐 Auth <span class="nav-badge">4</span></div>
+        <div class="nav-item" onclick="scrollTo('s-products')">📦 Products <span class="nav-badge">5</span></div>
+        <div class="nav-item" onclick="scrollTo('s-cart')">🛒 Cart <span class="nav-badge">5</span></div>
+        <div class="nav-item" onclick="scrollTo('s-orders')">📋 Orders <span class="nav-badge">6</span></div>
+        <div class="nav-item" onclick="scrollTo('s-reviews')">⭐ Reviews <span class="nav-badge">2</span></div>
+        <div class="nav-item" onclick="scrollTo('s-wishlist')">❤️ Wishlist <span class="nav-badge">2</span></div>
+        <div class="nav-item" onclick="scrollTo('s-categories')">🗂️ Categories <span class="nav-badge">3</span></div>
+        <div class="nav-item" onclick="scrollTo('s-notifications')">🔔 Notifications <span class="nav-badge">3</span></div>
+        <div class="nav-item" onclick="scrollTo('s-analytics')">📊 Analytics <span class="nav-badge">1</span></div>
+      </div>
+      <div class="nav-group">
+        <div class="nav-group-label">Real-time</div>
+        <div class="nav-item" onclick="scrollTo('s-socket')">⚡ Socket.io</div>
+      </div>
+    </nav>
+  </aside>
+
+  <!-- Main -->
+  <main class="main">
+
+    <!-- Header -->
+    <div class="page-header" id="intro">
+      <div class="page-title">OnStore API</div>
+      <div class="page-desc">Complete REST API reference for the OnStore e-commerce platform — buyers, sellers, products, orders, chat & analytics.</div>
+      <div class="base-url-bar">
+        <span class="base-url-label">Base URL</span>
+        <span class="base-url-value">http://localhost:5000/api</span>
+      </div>
+    </div>
+
+    <!-- Auth note -->
+    <div id="auth-section" class="auth-note" style="scroll-margin-top:24px">
+      <span style="font-size:18px">🔑</span>
+      <div>
+        All protected routes require a <code>Bearer</code> token in the <code>Authorization</code> header.<br/>
+        <span style="color:var(--muted);font-size:12px;">Obtain a token via <strong style="color:var(--text)">POST /auth/login</strong> or <strong style="color:var(--text)">POST /auth/register</strong>.</span>
+      </div>
+    </div>
+
+    <!-- ── AUTH ──────────────────────────────────────────────── -->
+    <div class="section" id="s-auth">
+      <div class="section-title">🔐 Auth</div>
+      <div class="section-desc">User registration, login, profile access and password management.</div>
+
+      <!-- Register -->
+      <div class="endpoint">
+        <div class="ep-header" onclick="toggle(this)">
+          <span class="method POST">POST</span>
+          <span class="ep-path">/auth/register</span>
+          <div class="ep-access"><span class="badge public">Public</span></div>
+          <span class="ep-desc">Register buyer or seller</span>
+          <span class="ep-chevron">▼</span>
+        </div>
+        <div class="ep-body">
+          <div class="ep-body-inner">
+            <div>
+              <div class="detail-label">Request Body</div>
+              <pre><span class="kw">{</span>
+  <span class="key">"username"</span>:   <span class="str">"john_doe"</span>,
+  <span class="key">"email"</span>:      <span class="str">"john@example.com"</span>,
+  <span class="key">"password"</span>:   <span class="str">"secret123"</span>,
+  <span class="key">"role"</span>:       <span class="str">"buyer"</span>,          <span style="color:var(--muted)">// "buyer" | "seller"</span>
+  <span class="key">"full_name"</span>:  <span class="str">"John Doe"</span>,       <span style="color:var(--muted)">// buyer only</span>
+  <span class="key">"store_name"</span>: <span class="str">"My Store"</span>,       <span style="color:var(--muted)">// seller only (required)</span>
+  <span class="key">"phone"</span>:      <span class="str">"+250700000001"</span>   <span style="color:var(--muted)">// optional</span>
+<span class="kw">}</span></pre>
+            </div>
+            <div>
+              <div class="detail-label">Response 201</div>
+              <pre><span class="kw">{</span>
+  <span class="key">"success"</span>: <span class="kw">true</span>,
+  <span class="key">"token"</span>:   <span class="str">"eyJhbGciOiJIUzI1NiIs..."</span>,
+  <span class="key">"user"</span>:   <span class="kw">{ id, username, email, role, created_at }</span>
+<span class="kw">}</span></pre>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Login -->
+      <div class="endpoint">
+        <div class="ep-header" onclick="toggle(this)">
+          <span class="method POST">POST</span>
+          <span class="ep-path">/auth/login</span>
+          <div class="ep-access"><span class="badge public">Public</span></div>
+          <span class="ep-desc">Login and get JWT token</span>
+          <span class="ep-chevron">▼</span>
+        </div>
+        <div class="ep-body">
+          <div class="ep-body-inner">
+            <div>
+              <div class="detail-label">Request Body</div>
+              <pre><span class="kw">{</span>
+  <span class="key">"email"</span>:    <span class="str">"john@example.com"</span>,
+  <span class="key">"password"</span>: <span class="str">"secret123"</span>
+<span class="kw">}</span></pre>
+            </div>
+            <div>
+              <div class="detail-label">Response 200</div>
+              <pre><span class="kw">{</span>
+  <span class="key">"success"</span>: <span class="kw">true</span>,
+  <span class="key">"token"</span>:   <span class="str">"eyJhbGciOiJIUzI1NiIs..."</span>,
+  <span class="key">"user"</span>:    <span class="kw">{ id, username, email, role, avatar_url }</span>,
+  <span class="key">"profile"</span>: <span class="kw">{ id, store_name }</span>  <span style="color:var(--muted)">// or { id, full_name } for buyer</span>
+<span class="kw">}</span></pre>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Me -->
+      <div class="endpoint">
+        <div class="ep-header" onclick="toggle(this)">
+          <span class="method GET">GET</span>
+          <span class="ep-path">/auth/me</span>
+          <div class="ep-access"><span class="badge auth">Auth</span></div>
+          <span class="ep-desc">Get logged-in user</span>
+          <span class="ep-chevron">▼</span>
+        </div>
+        <div class="ep-body">
+          <div class="ep-body-inner">
+            <div>
+              <div class="detail-label">Response 200</div>
+              <pre><span class="kw">{</span>
+  <span class="key">"success"</span>: <span class="kw">true</span>,
+  <span class="key">"user"</span>: <span class="kw">{</span>
+    <span class="key">"id"</span>: <span class="num">1</span>, <span class="key">"username"</span>: <span class="str">"john_doe"</span>, <span class="key">"email"</span>: <span class="str">"john@example.com"</span>,
+    <span class="key">"role"</span>: <span class="str">"buyer"</span>, <span class="key">"avatar_url"</span>: <span class="kw">null</span>, <span class="key">"is_active"</span>: <span class="kw">true</span>
+  <span class="kw">}</span>
+<span class="kw">}</span></pre>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Change password -->
+      <div class="endpoint">
+        <div class="ep-header" onclick="toggle(this)">
+          <span class="method PUT">PUT</span>
+          <span class="ep-path">/auth/change-password</span>
+          <div class="ep-access"><span class="badge auth">Auth</span></div>
+          <span class="ep-desc">Change password</span>
+          <span class="ep-chevron">▼</span>
+        </div>
+        <div class="ep-body">
+          <div class="ep-body-inner">
+            <div>
+              <div class="detail-label">Request Body</div>
+              <pre><span class="kw">{</span>
+  <span class="key">"current_password"</span>: <span class="str">"secret123"</span>,
+  <span class="key">"new_password"</span>:     <span class="str">"newpassword456"</span>
+<span class="kw">}</span></pre>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── PRODUCTS ────────────────────────────────────────────── -->
+    <div class="section" id="s-products">
+      <div class="section-title">📦 Products</div>
+      <div class="section-desc">Browse, filter, search, create, update and delete products.</div>
+
+      <div class="endpoint">
+        <div class="ep-header" onclick="toggle(this)">
+          <span class="method GET">GET</span>
+          <span class="ep-path">/products</span>
+          <div class="ep-access"><span class="badge public">Public</span></div>
+          <span class="ep-desc">List products</span>
+          <span class="ep-chevron">▼</span>
+        </div>
+        <div class="ep-body">
+          <div class="ep-body-inner">
+            <div>
+              <div class="detail-label">Query Parameters</div>
+              <div style="margin-top:6px">
+                <span class="query-pill"><span>page</span>=1</span>
+                <span class="query-pill"><span>limit</span>=20</span>
+                <span class="query-pill"><span>search</span>=keyword</span>
+                <span class="query-pill"><span>category</span>=1</span>
+                <span class="query-pill"><span>seller</span>=2</span>
+                <span class="query-pill"><span>min_price</span>=10</span>
+                <span class="query-pill"><span>max_price</span>=500</span>
+                <span class="query-pill"><span>sort</span>=price</span>
+                <span class="query-pill"><span>order</span>=ASC</span>
+              </div>
+              <div style="margin-top:8px;font-size:12px;color:var(--muted)">sort options: <code style="font-family:monospace;color:var(--accent2)">created_at</code>, <code style="font-family:monospace;color:var(--accent2)">price</code>, <code style="font-family:monospace;color:var(--accent2)">avg_rating</code>, <code style="font-family:monospace;color:var(--accent2)">total_sales</code>, <code style="font-family:monospace;color:var(--accent2)">name</code></div>
+            </div>
+            <div>
+              <div class="detail-label">Response 200</div>
+              <pre><span class="kw">{</span>
+  <span class="key">"data"</span>: [<span class="kw">{</span> id, name, slug, price, stock, avg_rating, primary_image, store_name <span class="kw">}</span>],
+  <span class="key">"pagination"</span>: <span class="kw">{</span> <span class="key">"page"</span>: <span class="num">1</span>, <span class="key">"limit"</span>: <span class="num">20</span>, <span class="key">"total"</span>: <span class="num">84</span>, <span class="key">"pages"</span>: <span class="num">5</span> <span class="kw">}</span>
+<span class="kw">}</span></pre>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="endpoint">
+        <div class="ep-header" onclick="toggle(this)">
+          <span class="method GET">GET</span>
+          <span class="ep-path">/products/<span class="param">:slug</span></span>
+          <div class="ep-access"><span class="badge public">Public</span></div>
+          <span class="ep-desc">Product detail</span>
+          <span class="ep-chevron">▼</span>
+        </div>
+        <div class="ep-body">
+          <div class="ep-body-inner">
+            <div>
+              <div class="detail-label">Response 200</div>
+              <pre><span class="kw">{</span>
+  <span class="key">"data"</span>: <span class="kw">{</span>
+    id, name, slug, description, price, stock, avg_rating, status,
+    <span class="key">"seller"</span>: <span class="kw">{ store_name, seller_profile_id }</span>,
+    <span class="key">"images"</span>: [<span class="kw">{ image_url, is_primary, sort_order }</span>],
+    <span class="key">"reviews"</span>: [<span class="kw">{ rating, title, body, username }</span>],
+    <span class="key">"priceHistory"</span>: [<span class="kw">{ old_price, new_price, changed_at }</span>]
+  <span class="kw">}</span>
+<span class="kw">}</span></pre>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="endpoint">
+        <div class="ep-header" onclick="toggle(this)">
+          <span class="method POST">POST</span>
+          <span class="ep-path">/products</span>
+          <div class="ep-access"><span class="badge seller">Seller</span></div>
+          <span class="ep-desc">Create product</span>
+          <span class="ep-chevron">▼</span>
+        </div>
+        <div class="ep-body">
+          <div class="ep-body-inner">
+            <div>
+              <div class="detail-label">Request Body — multipart/form-data</div>
+              <table class="params-table">
+                <tr><th>Field</th><th>Type</th><th>Required</th><th>Notes</th></tr>
+                <tr><td class="param-name">name</td><td class="param-type">string</td><td><span class="param-req required">required</span></td><td style="font-size:12px;color:var(--muted)">Slug auto-generated</td></tr>
+                <tr><td class="param-name">price</td><td class="param-type">decimal</td><td><span class="param-req required">required</span></td><td style="font-size:12px;color:var(--muted)">e.g. 49.99</td></tr>
+                <tr><td class="param-name">stock</td><td class="param-type">int</td><td><span class="param-req optional">optional</span></td><td style="font-size:12px;color:var(--muted)">Default 0</td></tr>
+                <tr><td class="param-name">category_id</td><td class="param-type">int</td><td><span class="param-req optional">optional</span></td><td></td></tr>
+                <tr><td class="param-name">description</td><td class="param-type">text</td><td><span class="param-req optional">optional</span></td><td></td></tr>
+                <tr><td class="param-name">images</td><td class="param-type">file[]</td><td><span class="param-req optional">optional</span></td><td style="font-size:12px;color:var(--muted)">Max 8 images, JPEG/PNG/WebP, 5MB each</td></tr>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="endpoint">
+        <div class="ep-header" onclick="toggle(this)">
+          <span class="method PUT">PUT</span>
+          <span class="ep-path">/products/<span class="param">:id</span></span>
+          <div class="ep-access"><span class="badge seller">Seller</span></div>
+          <span class="ep-desc">Update own product</span>
+          <span class="ep-chevron">▼</span>
+        </div>
+        <div class="ep-body">
+          <div class="ep-body-inner">
+            <div style="font-size:13px;color:var(--muted)">Same fields as create. Only provided fields are updated. Price changes are automatically logged to <code style="font-family:monospace;color:var(--accent2)">price_history</code>.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="endpoint">
+        <div class="ep-header" onclick="toggle(this)">
+          <span class="method DELETE">DELETE</span>
+          <span class="ep-path">/products/<span class="param">:id</span></span>
+          <div class="ep-access"><span class="badge seller">Seller</span></div>
+          <span class="ep-desc">Delete own product</span>
+          <span class="ep-chevron">▼</span>
+        </div>
+        <div class="ep-body">
+          <div class="ep-body-inner">
+            <div style="font-size:13px;color:var(--muted)">Only the seller who owns the product can delete it. Returns 404 if not found or not owned.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── CART ───────────────────────────────────────────────── -->
+    <div class="section" id="s-cart">
+      <div class="section-title">🛒 Cart</div>
+      <div class="section-desc">Manage the buyer's shopping cart before checkout.</div>
+
+      <div class="endpoint"><div class="ep-header" onclick="toggle(this)"><span class="method GET">GET</span><span class="ep-path">/cart</span><div class="ep-access"><span class="badge buyer">Buyer</span></div><span class="ep-desc">Get cart with totals</span><span class="ep-chevron">▼</span></div><div class="ep-body"><div class="ep-body-inner"><div class="detail-label">Response 200</div><pre><span class="kw">{</span> <span class="key">"data"</span>: [<span class="kw">{</span> id, quantity, product_id, name, price, stock, image, store_name <span class="kw">}</span>], <span class="key">"total"</span>: <span class="num">149.97</span>, <span class="key">"count"</span>: <span class="num">3</span> <span class="kw">}</span></pre></div></div></div>
+
+      <div class="endpoint"><div class="ep-header" onclick="toggle(this)"><span class="method POST">POST</span><span class="ep-path">/cart</span><div class="ep-access"><span class="badge buyer">Buyer</span></div><span class="ep-desc">Add item to cart</span><span class="ep-chevron">▼</span></div><div class="ep-body"><div class="ep-body-inner"><div class="detail-label">Request Body</div><pre><span class="kw">{</span> <span class="key">"product_id"</span>: <span class="num">5</span>, <span class="key">"quantity"</span>: <span class="num">2</span> <span class="kw">}</span></pre><div style="font-size:12px;color:var(--muted);margin-top:8px">Adding an existing item increments the quantity.</div></div></div></div>
+
+      <div class="endpoint"><div class="ep-header" onclick="toggle(this)"><span class="method PATCH">PATCH</span><span class="ep-path">/cart/<span class="param">:id</span></span><div class="ep-access"><span class="badge buyer">Buyer</span></div><span class="ep-desc">Update quantity</span><span class="ep-chevron">▼</span></div><div class="ep-body"><div class="ep-body-inner"><pre><span class="kw">{</span> <span class="key">"quantity"</span>: <span class="num">3</span> <span class="kw">}</span></pre><div style="font-size:12px;color:var(--muted);margin-top:8px">Set quantity to 0 to auto-remove the item.</div></div></div></div>
+
+      <div class="endpoint"><div class="ep-header" onclick="toggle(this)"><span class="method DELETE">DELETE</span><span class="ep-path">/cart/<span class="param">:id</span></span><div class="ep-access"><span class="badge buyer">Buyer</span></div><span class="ep-desc">Remove single item</span><span class="ep-chevron">▼</span></div><div class="ep-body"><div class="ep-body-inner"><div style="font-size:13px;color:var(--muted)">Removes a specific cart item by cart row ID.</div></div></div></div>
+
+      <div class="endpoint"><div class="ep-header" onclick="toggle(this)"><span class="method DELETE">DELETE</span><span class="ep-path">/cart</span><div class="ep-access"><span class="badge buyer">Buyer</span></div><span class="ep-desc">Clear entire cart</span><span class="ep-chevron">▼</span></div><div class="ep-body"><div class="ep-body-inner"><div style="font-size:13px;color:var(--muted)">Removes all items from the buyer's cart.</div></div></div></div>
+    </div>
+
+    <!-- ── ORDERS ──────────────────────────────────────────────── -->
+    <div class="section" id="s-orders">
+      <div class="section-title">📋 Orders</div>
+      <div class="section-desc">Place orders from cart, track history and manage fulfilment per item.</div>
+
+      <div style="margin-bottom:16px">
+        <div class="detail-label">Order Status Flow</div>
+        <div class="status-flow" style="margin-top:8px">
+          <span class="status-pill">pending</span><span class="status-arrow">→</span>
+          <span class="status-pill">confirmed</span><span class="status-arrow">→</span>
+          <span class="status-pill">processing</span><span class="status-arrow">→</span>
+          <span class="status-pill">delivered</span>
+          <span class="status-arrow">/</span>
+          <span class="status-pill" style="color:var(--DELETE)">cancelled</span>
+          <span class="status-arrow">/</span>
+          <span class="status-pill" style="color:var(--muted)">refunded</span>
+        </div>
+      </div>
+
+      <div class="endpoint"><div class="ep-header" onclick="toggle(this)"><span class="method POST">POST</span><span class="ep-path">/orders</span><div class="ep-access"><span class="badge buyer">Buyer</span></div><span class="ep-desc">Place order from cart</span><span class="ep-chevron">▼</span></div><div class="ep-body"><div class="ep-body-inner"><div class="detail-label">Request Body</div><pre><span class="kw">{</span>
+  <span class="key">"address_id"</span>:     <span class="num">1</span>,
+  <span class="key">"payment_method"</span>: <span class="str">"mobile_money"</span>,
+  <span class="key">"notes"</span>:          <span class="str">"Pack carefully"</span>
+<span class="kw">}</span></pre><div style="font-size:12px;color:var(--muted);margin-top:8px">Stock is validated and decremented automatically. Cart is cleared on success. Buyer gets a notification.</div></div></div></div>
+
+      <div class="endpoint"><div class="ep-header" onclick="toggle(this)"><span class="method GET">GET</span><span class="ep-path">/orders</span><div class="ep-access"><span class="badge buyer">Buyer</span></div><span class="ep-desc">My order history</span><span class="ep-chevron">▼</span></div><div class="ep-body"><div class="ep-body-inner"><div style="margin-top:4px"><span class="query-pill"><span>page</span>=1</span><span class="query-pill"><span>limit</span>=10</span><span class="query-pill"><span>status</span>=pending</span></div></div></div></div>
+
+      <div class="endpoint"><div class="ep-header" onclick="toggle(this)"><span class="method GET">GET</span><span class="ep-path">/orders/<span class="param">:id</span></span><div class="ep-access"><span class="badge buyer">Buyer</span></div><span class="ep-desc">Order detail + items</span><span class="ep-chevron">▼</span></div><div class="ep-body"><div class="ep-body-inner"><pre><span class="kw">{</span>
+  <span class="key">"data"</span>: <span class="kw">{</span>
+    id, total_amount, status, payment_status,
+    street, city, country,
+    <span class="key">"items"</span>: [<span class="kw">{</span> product_name, quantity, unit_price, subtotal, item_status, store_name, image <span class="kw">}</span>]
+  <span class="kw">}</span>
+<span class="kw">}</span></pre></div></div></div>
+
+      <div class="endpoint"><div class="ep-header" onclick="toggle(this)"><span class="method PATCH">PATCH</span><span class="ep-path">/orders/<span class="param">:id</span>/cancel</span><div class="ep-access"><span class="badge buyer">Buyer</span></div><span class="ep-desc">Cancel order</span><span class="ep-chevron">▼</span></div><div class="ep-body"><div class="ep-body-inner"><div style="font-size:13px;color:var(--muted)">Only <code style="font-family:monospace;color:var(--accent2)">pending</code> or <code style="font-family:monospace;color:var(--accent2)">confirmed</code> orders can be cancelled. Stock is automatically restored.</div></div></div></div>
+
+      <div class="endpoint"><div class="ep-header" onclick="toggle(this)"><span class="method GET">GET</span><span class="ep-path">/orders/seller</span><div class="ep-access"><span class="badge seller">Seller</span></div><span class="ep-desc">Orders with my items</span><span class="ep-chevron">▼</span></div><div class="ep-body"><div class="ep-body-inner"><div style="margin-top:4px"><span class="query-pill"><span>page</span>=1</span><span class="query-pill"><span>status</span>=pending</span></div></div></div></div>
+
+      <div class="endpoint"><div class="ep-header" onclick="toggle(this)"><span class="method PATCH">PATCH</span><span class="ep-path">/orders/<span class="param">:orderId</span>/items/<span class="param">:itemId</span>/status</span><div class="ep-access"><span class="badge seller">Seller</span></div><span class="ep-desc">Update item status</span><span class="ep-chevron">▼</span></div><div class="ep-body"><div class="ep-body-inner"><pre><span class="kw">{</span> <span class="key">"status"</span>: <span class="str">"confirmed"</span> <span class="kw">}</span>  <span style="color:var(--muted)">// confirmed | delivered | cancelled</span></pre><div style="font-size:12px;color:var(--muted);margin-top:8px">Buyer is notified automatically via notification system.</div></div></div></div>
+    </div>
+
+    <!-- ── REVIEWS ────────────────────────────────────────────── -->
+    <div class="section" id="s-reviews">
+      <div class="section-title">⭐ Reviews</div>
+      <div class="section-desc">Buyers can review products they have received. One review per product per order.</div>
+
+      <div class="endpoint"><div class="ep-header" onclick="toggle(this)"><span class="method POST">POST</span><span class="ep-path">/reviews</span><div class="ep-access"><span class="badge buyer">Buyer</span></div><span class="ep-desc">Submit review</span><span class="ep-chevron">▼</span></div><div class="ep-body"><div class="ep-body-inner"><pre><span class="kw">{</span>
+  <span class="key">"product_id"</span>: <span class="num">5</span>,
+  <span class="key">"order_id"</span>:   <span class="num">12</span>,
+  <span class="key">"rating"</span>:     <span class="num">5</span>,     <span style="color:var(--muted)">// 1–5</span>
+  <span class="key">"title"</span>:      <span class="str">"Great quality!"</span>,
+  <span class="key">"body"</span>:       <span class="str">"Really happy with this purchase."</span>
+<span class="kw">}</span></pre><div style="font-size:12px;color:var(--muted);margin-top:8px">Requires item_status = <code style="font-family:monospace">delivered</code>. Product avg_rating is recalculated automatically.</div></div></div></div>
+
+      <div class="endpoint"><div class="ep-header" onclick="toggle(this)"><span class="method GET">GET</span><span class="ep-path">/reviews/product/<span class="param">:productId</span></span><div class="ep-access"><span class="badge public">Public</span></div><span class="ep-desc">Product reviews + stats</span><span class="ep-chevron">▼</span></div><div class="ep-body"><div class="ep-body-inner"><pre><span class="kw">{</span>
+  <span class="key">"data"</span>:  [<span class="kw">{</span> rating, title, body, username, avatar_url, created_at <span class="kw">}</span>],
+  <span class="key">"stats"</span>: <span class="kw">{</span> <span class="key">"total"</span>: <span class="num">42</span>, <span class="key">"avg"</span>: <span class="str">"4.70"</span> <span class="kw">}</span>
+<span class="kw">}</span></pre></div></div></div>
+    </div>
+
+    <!-- ── WISHLIST ───────────────────────────────────────────── -->
+    <div class="section" id="s-wishlist">
+      <div class="section-title">❤️ Wishlist</div>
+      <div class="section-desc">Save products for later. Toggle endpoint adds or removes automatically.</div>
+
+      <div class="endpoint"><div class="ep-header" onclick="toggle(this)"><span class="method GET">GET</span><span class="ep-path">/wishlist</span><div class="ep-access"><span class="badge buyer">Buyer</span></div><span class="ep-desc">Get saved products</span><span class="ep-chevron">▼</span></div><div class="ep-body"><div class="ep-body-inner"><pre><span class="kw">{</span> <span class="key">"data"</span>: [<span class="kw">{</span> id, product_id, name, price, avg_rating, image, added_at <span class="kw">}</span>] <span class="kw">}</span></pre></div></div></div>
+
+      <div class="endpoint"><div class="ep-header" onclick="toggle(this)"><span class="method POST">POST</span><span class="ep-path">/wishlist</span><div class="ep-access"><span class="badge buyer">Buyer</span></div><span class="ep-desc">Toggle (add / remove)</span><span class="ep-chevron">▼</span></div><div class="ep-body"><div class="ep-body-inner"><pre><span class="kw">{</span> <span class="key">"product_id"</span>: <span class="num">5</span> <span class="kw">}</span></pre><div style="font-size:12px;color:var(--muted);margin-top:8px">Returns <code style="font-family:monospace;color:var(--accent2)">"wishlisted": true</code> when added, <code style="font-family:monospace;color:var(--accent2)">false</code> when removed.</div></div></div></div>
+    </div>
+
+    <!-- ── CATEGORIES ─────────────────────────────────────────── -->
+    <div class="section" id="s-categories">
+      <div class="section-title">🗂️ Categories</div>
+      <div class="section-desc">Hierarchical product categories. Top-level categories can have sub-categories.</div>
+
+      <div class="endpoint"><div class="ep-header" onclick="toggle(this)"><span class="method GET">GET</span><span class="ep-path">/categories</span><div class="ep-access"><span class="badge public">Public</span></div><span class="ep-desc">Full category tree</span><span class="ep-chevron">▼</span></div><div class="ep-body"><div class="ep-body-inner"><pre><span class="kw">{</span>
+  <span class="key">"data"</span>: [<span class="kw">{</span>
+    id, name, slug, icon_url, product_count,
+    <span class="key">"children"</span>: [<span class="kw">{</span> id, name, slug, product_count <span class="kw">}</span>]
+  <span class="kw">}</span>]
+<span class="kw">}</span></pre></div></div></div>
+
+      <div class="endpoint"><div class="ep-header" onclick="toggle(this)"><span class="method POST">POST</span><span class="ep-path">/categories</span><div class="ep-access"><span class="badge admin">Admin</span></div><span class="ep-desc">Create category</span><span class="ep-chevron">▼</span></div><div class="ep-body"><div class="ep-body-inner"><pre><span class="kw">{</span>
+  <span class="key">"name"</span>:      <span class="str">"Electronics"</span>,
+  <span class="key">"parent_id"</span>: <span class="kw">null</span>,           <span style="color:var(--muted)">// null = top-level</span>
+  <span class="key">"icon_url"</span>:  <span class="str">"/icons/elec.svg"</span>
+<span class="kw">}</span></pre></div></div></div>
+    </div>
+
+    <!-- ── NOTIFICATIONS ──────────────────────────────────────── -->
+    <div class="section" id="s-notifications">
+      <div class="section-title">🔔 Notifications</div>
+      <div class="section-desc">In-app alerts triggered by orders, messages and reviews.</div>
+
+      <div class="endpoint"><div class="ep-header" onclick="toggle(this)"><span class="method GET">GET</span><span class="ep-path">/notifications</span><div class="ep-access"><span class="badge auth">Auth</span></div><span class="ep-desc">Get notifications</span><span class="ep-chevron">▼</span></div><div class="ep-body"><div class="ep-body-inner"><div><span class="query-pill"><span>page</span>=1</span><span class="query-pill"><span>limit</span>=20</span><span class="query-pill"><span>unread</span>=true</span></div><pre style="margin-top:10px"><span class="kw">{</span>
+  <span class="key">"data"</span>: [<span class="kw">{</span> id, type, title, body, is_read, reference_id, created_at <span class="kw">}</span>],
+  <span class="key">"unread_count"</span>: <span class="num">3</span>
+<span class="kw">}</span></pre></div></div></div></div>
+
+      <div class="endpoint"><div class="ep-header" onclick="toggle(this)"><span class="method PATCH">PATCH</span><span class="ep-path">/notifications/read-all</span><div class="ep-access"><span class="badge auth">Auth</span></div><span class="ep-desc">Mark all as read</span><span class="ep-chevron">▼</span></div><div class="ep-body"><div class="ep-body-inner"><div style="font-size:13px;color:var(--muted)">Sets <code style="font-family:monospace;color:var(--accent2)">is_read = true</code> for all of the current user's notifications.</div></div></div></div>
+
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px 16px;margin-top:8px;">
+        <div class="detail-label" style="margin-bottom:10px">Notification Types</div>
+        <div style="display:flex;flex-wrap:wrap;gap:8px;font-size:12px;font-family:monospace">
+          <span style="background:var(--surface2);border:1px solid var(--border);padding:4px 10px;border-radius:6px;color:var(--accent2)">order_placed</span>
+          <span style="background:var(--surface2);border:1px solid var(--border);padding:4px 10px;border-radius:6px;color:var(--accent2)">order_update</span>
+          <span style="background:var(--surface2);border:1px solid var(--border);padding:4px 10px;border-radius:6px;color:var(--accent2)">message</span>
+          <span style="background:var(--surface2);border:1px solid var(--border);padding:4px 10px;border-radius:6px;color:var(--accent2)">review</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── ANALYTICS ──────────────────────────────────────────── -->
+    <div class="section" id="s-analytics">
+      <div class="section-title">📊 Analytics</div>
+      <div class="section-desc">Seller dashboard data for monitoring store performance.</div>
+
+      <div class="endpoint"><div class="ep-header" onclick="toggle(this)"><span class="method GET">GET</span><span class="ep-path">/analytics/seller</span><div class="ep-access"><span class="badge seller">Seller</span></div><span class="ep-desc">Full seller dashboard</span><span class="ep-chevron">▼</span></div><div class="ep-body"><div class="ep-body-inner"><pre><span class="kw">{</span>
+  <span class="key">"data"</span>: <span class="kw">{</span>
+    <span class="key">"overview"</span>: <span class="kw">{</span>
+      <span class="key">"total_revenue"</span>: <span class="num">12450.00</span>,
+      <span class="key">"total_orders"</span>:  <span class="num">84</span>,
+      <span class="key">"total_items_sold"</span>: <span class="num">213</span>
+    <span class="kw">}</span>,
+    <span class="key">"top_products"</span>: [<span class="kw">{</span> name, slug, units_sold, revenue <span class="kw">}</span>],  <span style="color:var(--muted)">// top 5</span>
+    <span class="key">"monthly_sales"</span>: [<span class="kw">{</span> month, revenue, orders <span class="kw">}</span>],      <span style="color:var(--muted)">// last 12 months</span>
+    <span class="key">"low_stock_count"</span>: <span class="num">3</span>                                  <span style="color:var(--muted)">// stock ≤ 5</span>
+  <span class="kw">}</span>
+<span class="kw">}</span></pre></div></div></div>
+    </div>
+
+    <hr/>
+
+    <!-- ── SOCKET.IO ──────────────────────────────────────────── -->
+    <div class="section" id="s-socket">
+      <div class="section-title">⚡ Socket.io — Real-time</div>
+      <div class="section-desc">Live chat between buyers and sellers, plus instant notifications. Connect with your JWT token.</div>
+
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:20px;">
+        <div class="detail-label" style="margin-bottom:10px">Connect</div>
+        <pre><span class="kw">const</span> socket = <span class="kw">io</span>(<span class="str">'http://localhost:5000'</span>, <span class="kw">{</span>
+  <span class="key">auth</span>: <span class="kw">{</span> <span class="key">token</span>: <span class="str">'your_jwt_token_here'</span> <span class="kw">}</span>
+<span class="kw">}</span>);</pre>
+      </div>
+
+      <div class="socket-grid">
+        <div class="socket-card">
+          <div class="socket-card-title">⬆️ Client → Server</div>
+          <div class="socket-event">
+            <div class="socket-event-name">chat:open</div>
+            <div class="socket-event-desc">Create or get room<br/><code style="font-family:monospace;font-size:11px;color:var(--muted)">{ seller_id }</code></div>
+          </div>
+          <div class="socket-event">
+            <div class="socket-event-name">chat:join</div>
+            <div class="socket-event-desc">Join a room<br/><code style="font-family:monospace;font-size:11px;color:var(--muted)">{ room_id }</code></div>
+          </div>
+          <div class="socket-event">
+            <div class="socket-event-name">chat:send</div>
+            <div class="socket-event-desc">Send message<br/><code style="font-family:monospace;font-size:11px;color:var(--muted)">{ room_id, body }</code></div>
+          </div>
+          <div class="socket-event">
+            <div class="socket-event-name">chat:typing</div>
+            <div class="socket-event-desc">Typing indicator<br/><code style="font-family:monospace;font-size:11px;color:var(--muted)">{ room_id, typing: true }</code></div>
+          </div>
+        </div>
+        <div class="socket-card">
+          <div class="socket-card-title">⬇️ Server → Client</div>
+          <div class="socket-event">
+            <div class="socket-event-name">chat:room</div>
+            <div class="socket-event-desc">Room ready<br/><code style="font-family:monospace;font-size:11px;color:var(--muted)">{ room_id }</code></div>
+          </div>
+          <div class="socket-event">
+            <div class="socket-event-name">chat:history</div>
+            <div class="socket-event-desc">Last 50 messages<br/><code style="font-family:monospace;font-size:11px;color:var(--muted)">[{ id, body, username, sent_at }]</code></div>
+          </div>
+          <div class="socket-event">
+            <div class="socket-event-name">chat:message</div>
+            <div class="socket-event-desc">Incoming message<br/><code style="font-family:monospace;font-size:11px;color:var(--muted)">{ body, username, sent_at }</code></div>
+          </div>
+          <div class="socket-event">
+            <div class="socket-event-name">notification:new</div>
+            <div class="socket-event-desc">Real-time notification<br/><code style="font-family:monospace;font-size:11px;color:var(--muted)">{ type, title, body }</code></div>
+          </div>
+        </div>
+      </div>
+
+      <div style="margin-top:20px;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px;">
+        <div class="detail-label" style="margin-bottom:10px">Full Chat Flow Example</div>
+        <pre><span style="color:var(--muted)">// 1. Buyer opens a chat with a seller</span>
+socket.<span class="kw">emit</span>(<span class="str">'chat:open'</span>, <span class="kw">{</span> <span class="key">seller_id</span>: <span class="num">3</span> <span class="kw">}</span>);
+socket.<span class="kw">on</span>(<span class="str">'chat:room'</span>, <span class="kw">({ room_id })</span> => <span class="kw">{</span>
+  <span style="color:var(--muted)">// 2. Join the room to load history</span>
+  socket.<span class="kw">emit</span>(<span class="str">'chat:join'</span>, <span class="kw">{</span> <span class="key">room_id</span> <span class="kw">}</span>);
+<span class="kw">}</span>);
+
+<span style="color:var(--muted)">// 3. Listen for history</span>
+socket.<span class="kw">on</span>(<span class="str">'chat:history'</span>, <span class="kw">(messages)</span> => renderMessages(messages));
+
+<span style="color:var(--muted)">// 4. Send a message</span>
+socket.<span class="kw">emit</span>(<span class="str">'chat:send'</span>, <span class="kw">{</span> <span class="key">room_id</span>: <span class="num">7</span>, <span class="key">body</span>: <span class="str">'Is this still available?'</span> <span class="kw">}</span>);
+
+<span style="color:var(--muted)">// 5. Receive messages in real-time</span>
+socket.<span class="kw">on</span>(<span class="str">'chat:message'</span>, <span class="kw">(msg)</span> => appendMessage(msg));</pre>
+      </div>
+    </div>
+
+    <div style="padding:40px 0 20px;text-align:center;color:var(--muted);font-size:12px">
+      OnStore API v1.0 — 31 endpoints · Socket.io real-time · MySQL
+    </div>
+
+  </main>
+</div>
+
+<script>
+  function toggle(header) {
+    const body = header.nextElementSibling;
+    const chevron = header.querySelector('.ep-chevron');
+    const isOpen = body.classList.contains('open');
+    body.classList.toggle('open', !isOpen);
+    chevron.classList.toggle('open', !isOpen);
+  }
+
+  function scrollTo(id) {
+    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    event.target.classList.add('active');
+  }
+
+  // Highlight nav on scroll
+  const sections = ['s-auth','s-products','s-cart','s-orders','s-reviews','s-wishlist','s-categories','s-notifications','s-analytics','s-socket'];
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+        const match = document.querySelector(`.nav-item[onclick="scrollTo('${e.target.id}')"]`);
+        if (match) match.classList.add('active');
+      }
+    });
+  }, { threshold: 0.3 });
+  sections.forEach(id => { const el = document.getElementById(id); if (el) observer.observe(el); });
+</script>
+</body>
+</html>
