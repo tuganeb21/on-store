@@ -1,0 +1,211 @@
+/**
+ * Sample requests for testing the Employee Payroll & Leave Management API
+ * Can be used with Postman or other REST clients
+ */
+
+// ==========================================
+// 1. AUTHENTICATION & EMPLOYEE MANAGEMENT
+// ==========================================
+
+// Register as Admin
+POST http://localhost:5000/api/employees/register
+Content-Type: application/json
+
+{
+  "name": "Admin User",
+  "email": "admin@company.com",
+  "password": "admin123",
+  "employeeId": "ADMIN001",
+  "department": "HR",
+  "designation": "HR Manager",
+  "salary": 80000
+}
+
+// Register as Employee
+POST http://localhost:5000/api/employees/register
+Content-Type: application/json
+
+{
+  "name": "John Doe",
+  "email": "john@company.com",
+  "password": "password123",
+  "employeeId": "EMP001",
+  "department": "IT",
+  "designation": "Software Engineer",
+  "salary": 50000
+}
+
+// Register another Employee
+POST http://localhost:5000/api/employees/register
+Content-Type: application/json
+
+{
+  "name": "Jane Smith",
+  "email": "jane@company.com",
+  "password": "password123",
+  "employeeId": "EMP002",
+  "department": "Finance",
+  "designation": "Accountant",
+  "salary": 45000
+}
+
+// Login - Get Token
+POST http://localhost:5000/api/employees/login
+Content-Type: application/json
+
+{
+  "email": "john@company.com",
+  "password": "password123"
+}
+
+// Login as Admin
+POST http://localhost:5000/api/employees/login
+Content-Type: application/json
+
+{
+  "email": "admin@company.com",
+  "password": "admin123"
+}
+
+// Get Employee Profile
+GET http://localhost:5000/api/employees/profile
+Authorization: Bearer YOUR_TOKEN_HERE
+
+// Get All Employees (Admin Only)
+GET http://localhost:5000/api/employees
+Authorization: Bearer ADMIN_TOKEN_HERE
+
+// Get All Employees by Department
+GET http://localhost:5000/api/employees?department=IT
+Authorization: Bearer ADMIN_TOKEN_HERE
+
+// ==========================================
+// 2. LEAVE REQUEST OPERATIONS
+// ==========================================
+
+// Request Leave
+POST http://localhost:5000/api/leaves/request
+Authorization: Bearer YOUR_TOKEN_HERE
+Content-Type: application/json
+
+{
+  "leaveType": "casual",
+  "startDate": "2024-06-10",
+  "endDate": "2024-06-14",
+  "reason": "Vacation with family"
+}
+
+// Request Sick Leave
+POST http://localhost:5000/api/leaves/request
+Authorization: Bearer YOUR_TOKEN_HERE
+Content-Type: application/json
+
+{
+  "leaveType": "sick",
+  "startDate": "2024-06-20",
+  "endDate": "2024-06-20",
+  "reason": "Medical appointment"
+}
+
+// Request Unpaid Leave
+POST http://localhost:5000/api/leaves/request
+Authorization: Bearer YOUR_TOKEN_HERE
+Content-Type: application/json
+
+{
+  "leaveType": "unpaid",
+  "startDate": "2024-07-01",
+  "endDate": "2024-07-05",
+  "reason": "Personal emergency"
+}
+
+// Get My Leave Requests
+GET http://localhost:5000/api/leaves/my-requests
+Authorization: Bearer YOUR_TOKEN_HERE
+
+// Get Remaining Leave Days
+GET http://localhost:5000/api/leaves/remaining
+Authorization: Bearer YOUR_TOKEN_HERE
+
+// Get All Leave Requests (Admin Only)
+GET http://localhost:5000/api/leaves/all
+Authorization: Bearer ADMIN_TOKEN_HERE
+
+// Get Pending Leave Requests Only
+GET http://localhost:5000/api/leaves/all?status=pending
+Authorization: Bearer ADMIN_TOKEN_HERE
+
+// Get Approved Leave Requests
+GET http://localhost:5000/api/leaves/all?status=approved
+Authorization: Bearer ADMIN_TOKEN_HERE
+
+// Get Leave Requests for Specific Employee
+GET http://localhost:5000/api/leaves/all?employeeId=507f1f77bcf86cd799439011
+Authorization: Bearer ADMIN_TOKEN_HERE
+
+// ==========================================
+// 3. ADMIN LEAVE MANAGEMENT
+// ==========================================
+
+// Approve Leave Request
+PUT http://localhost:5000/api/admin/leaves/LEAVE_ID_HERE/approve
+Authorization: Bearer ADMIN_TOKEN_HERE
+Content-Type: application/json
+
+// No body required for approval
+
+// Reject Leave Request
+PUT http://localhost:5000/api/admin/leaves/LEAVE_ID_HERE/reject
+Authorization: Bearer ADMIN_TOKEN_HERE
+Content-Type: application/json
+
+{
+  "rejectionReason": "Conflicting with project deadline"
+}
+
+// Get Specific Employee's Leave Balance
+GET http://localhost:5000/api/admin/employees/EMPLOYEE_ID_HERE/leave-balance
+Authorization: Bearer ADMIN_TOKEN_HERE
+
+// Get All Employees' Leave Balance Summary
+GET http://localhost:5000/api/admin/leave-summary
+Authorization: Bearer ADMIN_TOKEN_HERE
+
+// ==========================================
+// 4. ADVANCED FILTERS
+// ==========================================
+
+// Get Leave Requests with Date Range
+GET http://localhost:5000/api/leaves/all?startDate=2024-06-01&endDate=2024-06-30
+Authorization: Bearer ADMIN_TOKEN_HERE
+
+// Get Specific Employee's Requests with Status Filter
+GET http://localhost:5000/api/leaves/all?employeeId=507f1f77bcf86cd799439011&status=pending
+Authorization: Bearer ADMIN_TOKEN_HERE
+
+// ==========================================
+// NOTES:
+// ==========================================
+/*
+1. Replace "YOUR_TOKEN_HERE" with the actual JWT token from login response
+2. Replace "ADMIN_TOKEN_HERE" with admin's JWT token
+3. Replace "LEAVE_ID_HERE" with actual leave request ID from database
+4. Replace "EMPLOYEE_ID_HERE" with actual employee MongoDB ID
+5. Update dates to valid future dates for current year
+
+LEAVE TYPES:
+- casual: Regular casual leave
+- sick: Medical/sick leave
+- earned: Earned/PTO leave
+- unpaid: Unpaid leave
+- maternity: Maternity leave
+- paternity: Paternity leave
+
+DEFAULT LEAVE ALLOCATION: 20 days per year
+
+CALCULATION EXAMPLE:
+If employee requests 5-day leave (June 10-14):
+- numberOfDays = 5 (inclusive of both dates)
+- When approved: leaveUsed increases by 5
+- remainingLeave = 20 - 5 = 15 days
+*/

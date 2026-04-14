@@ -1,0 +1,78 @@
+### Register employee
+POST http://localhost:5000/api/employees/register
+Content-Type: application/json
+
+{
+  "name": "John Doe",
+  "email": "john@company.com",
+  "password": "password123",
+  "employeeId": "EMP001",
+  "department": "IT",
+  "designation": "Software Engineer",
+  "salary": 5000
+}
+
+### Login
+POST http://localhost:5000/api/employees/login
+Content-Type: application/json
+
+{
+  "email": "john@company.com",
+  "password": "password123"
+}
+
+### Submit leave request
+POST http://localhost:5000/api/leaves/request
+Authorization: Bearer YOUR_TOKEN_HERE
+Content-Type: application/json
+
+{
+  "leaveType": "casual",
+  "startDate": "2026-04-20",
+  "endDate": "2026-04-22",
+  "reason": "Family event"
+}
+
+### Get my leave requests
+GET http://localhost:5000/api/leaves/my-requests
+Authorization: Bearer YOUR_TOKEN_HERE
+
+### Get my remaining leave
+GET http://localhost:5000/api/leaves/remaining
+Authorization: Bearer YOUR_TOKEN_HERE
+
+### Admin: get pending leave requests
+GET http://localhost:5000/api/leaves/all?status=pending
+Authorization: Bearer ADMIN_TOKEN_HERE
+
+### Admin: approve leave
+PUT http://localhost:5000/api/admin/leaves/1/approve
+Authorization: Bearer ADMIN_TOKEN_HERE
+Content-Type: application/json
+
+{}
+
+### Admin: reject leave
+PUT http://localhost:5000/api/admin/leaves/1/reject
+Authorization: Bearer ADMIN_TOKEN_HERE
+Content-Type: application/json
+
+{
+  "rejectionReason": "Project deadline conflict"
+}
+
+### Admin: leave summary
+GET http://localhost:5000/api/admin/leave-summary
+Authorization: Bearer ADMIN_TOKEN_HERE
+
+### Employee: monthly payroll (current user)
+GET http://localhost:5000/api/payroll/my-monthly?year=2026&month=4
+Authorization: Bearer YOUR_TOKEN_HERE
+
+### Admin: monthly payroll summary
+GET http://localhost:5000/api/payroll/monthly-summary?year=2026&month=4
+Authorization: Bearer ADMIN_TOKEN_HERE
+
+### Admin: one employee monthly payroll
+GET http://localhost:5000/api/payroll/employee/1?year=2026&month=4
+Authorization: Bearer ADMIN_TOKEN_HERE
